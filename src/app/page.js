@@ -50,6 +50,8 @@ export default function Home() {
   const [currentTrack, setCurrentTrack] = useState("Lofi Chill Beats - Dev Session");
   const [defaultTrackReady, setDefaultTrackReady] = useState(true);
   const audioElRef = useRef(null);
+  const [autoplayBlocked, setAutoplayBlocked] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -65,26 +67,14 @@ export default function Home() {
         el.preload = "auto";
         el.playsInline = true;
         el.loop = true;
-        el.muted = true; // start muted to allow autoplay on many browsers
+        el.muted = isMuted; // respect default mute state
         el.src = response && response.ok ? "/audio/default.mp3" : "";
 
         if (response && response.ok) {
           setDefaultTrackReady(true);
           setCurrentTrack("Default Track");
-          try {
-            await el.play();
-            if (!mounted) return;
-            setIsPlaying(true);
-            // Once playing, attempt to unmute after a short delay
-            const onPlaying = () => {
-              window.setTimeout(() => { try { el.muted = false; } catch {} }, 250);
-              el.removeEventListener("playing", onPlaying);
-            };
-            el.addEventListener("playing", onPlaying);
-          } catch (playError) {
-            console.warn("Autoplay was blocked:", playError);
-            setIsPlaying(false);
-          }
+          // Do not autoplay: load ready for user-initiated play
+          try { el.load(); } catch (e) { /* ignore */ }
         } else {
           setDefaultTrackReady(false);
           setCurrentTrack("No default track loaded");
@@ -104,6 +94,35 @@ export default function Home() {
       audioElRef.current = null;
     };
   }, []);
+
+  // If autoplay was blocked, try to resume/unmute on first user interaction
+  useEffect(() => {
+    if (!autoplayBlocked) return;
+
+    const tryEnableOnInteraction = async () => {
+      const el = audioElRef.current || document.getElementById("default-audio");
+      if (!el) return;
+      try {
+        el.muted = false;
+        await el.play();
+        setIsPlaying(true);
+        setAutoplayBlocked(false);
+      } catch (err) {
+        console.warn("Enable on interaction failed:", err);
+      }
+    };
+
+    const onPointer = () => tryEnableOnInteraction();
+    const onKey = (e) => { if (e.key === 'Enter' || e.key === ' ') tryEnableOnInteraction(); };
+
+    window.addEventListener('pointerdown', onPointer, { once: true });
+    window.addEventListener('keydown', onKey, { once: true });
+
+    return () => {
+      try { window.removeEventListener('pointerdown', onPointer); } catch {}
+      try { window.removeEventListener('keydown', onKey); } catch {}
+    };
+  }, [autoplayBlocked]);
 
   const togglePlay = async () => {
     const el = audioElRef.current || document.getElementById("default-audio");
@@ -741,7 +760,7 @@ AUDIT: ARMORED. Perimeter firewalls hardened, full payload inspection active.`;
           <div className="bg-main border-2 border-black p-2 font-black text-xl tracking-tighter uppercase text-main-foreground shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
             P.BINA // DEV
           </div>
-          <div className="hidden md:flex items-center gap-2 border-2 border-black bg-secondary-background px-3 py-1 rounded-base font-bold text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] cursor-pointer select-none" onClick={togglePlay} title="Toggle Player">
+          <div className="hidden md:flex items-center gap-2 border-2 border-black bg-secondary-background px-3 py-1 rounded-base font-bold text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] cursor-pointer select-none">
             {isPlaying ? (
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-main opacity-75"></span>
@@ -753,9 +772,32 @@ AUDIT: ARMORED. Perimeter firewalls hardened, full payload inspection active.`;
               </span>
             )}
             <span className="truncate max-w-30">{isPlaying ? currentTrack : "Track Paused"}</span>
+            <button onClick={togglePlay} className="ml-2 px-2 py-1 border-2 border-black bg-transparent rounded-sm">{isPlaying ? <Pause className="inline" /> : <Play className="inline" />}</button>
+            <button onClick={async () => {
+              const el = audioElRef.current || document.getElementById("default-audio");
+              if (!el) return;
+              try {
+                el.muted = !el.muted;
+                setIsMuted(el.muted);
+              } catch (e) { console.warn(e); }
+            }} className="ml-2 px-2 py-1 border-2 border-black bg-transparent rounded-sm">{isMuted ? 'Unmute' : 'Mute'}</button>
           </div>
           {/* DOM audio element used for reliable autoplay (muted) */}
           <audio id="default-audio" ref={audioElRef} style={{ display: "none" }} autoPlay muted loop playsInline />
+          {autoplayBlocked && (
+            <button onClick={async () => {
+              const el = audioElRef.current || document.getElementById("default-audio");
+              if (!el) return;
+              try {
+                el.muted = false;
+                await el.play();
+                setIsPlaying(true);
+                setAutoplayBlocked(false);
+              } catch (err) {
+                console.warn('Manual enable failed', err);
+              }
+            }} className="ml-3 px-3 py-1 border-2 border-black bg-main text-main-foreground rounded-base font-bold">Enable Sound</button>
+          )}
         </div>
 
         <nav className="hidden lg:flex items-center gap-6 font-bold text-sm">
