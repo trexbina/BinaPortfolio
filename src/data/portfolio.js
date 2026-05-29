@@ -125,7 +125,7 @@ export const portfolioData = {
     {
       id: "friendspace",
       title: "Friendspace",
-      description: "A social media prototype inspired by Friendster — focuses on profiles, friending, and simple activity feeds. This system is undergoing active development and is not yet fully functional, but it demonstrates core concepts of user authentication, real-time updates, and responsive design.",
+      description: "A social media prototype inspired by Friendster — focuses on profiles, friending, and simple activity feeds. This system is undergoing active development and is not yet fully functional, but it demonstrates core concepts of user authentication, real-time updates, and responsive design. - For testing Login using - Username: anya@gmail.com password: 123 ", 
       icon: "cloud",
       image: "/projects/friendspace.png",
       github: "https://github.com/trexbina/Friendspace.git",

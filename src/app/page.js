@@ -1069,7 +1069,7 @@ AUDIT: ARMORED. Perimeter firewalls hardened, full payload inspection active.`;
                   <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black uppercase tracking-tight leading-tight pt-2 sm:pt-0">{portfolioData.personalInfo.name}</h3>
                   <p className="text-md font-black text-main uppercase tracking-wider">{portfolioData.personalInfo.title}</p>
                   <p className="text-sm font-bold text-muted-foreground">{portfolioData.personalInfo.location}</p>
-                  
+                
                   <div className="flex flex-wrap gap-2 justify-center sm:justify-start pt-2">
                     <Badge variant="neutral" className="border-2 border-black bg-secondary-background text-[11px] font-black uppercase px-2 py-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">AWS Certified</Badge>
                     <Badge variant="neutral" className="border-2 border-black bg-secondary-background text-[11px] font-black uppercase px-2 py-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Google Certified</Badge>
@@ -1172,11 +1172,11 @@ AUDIT: ARMORED. Perimeter firewalls hardened, full payload inspection active.`;
                     <div className="mt-6 flex flex-wrap gap-2.5 sm:gap-3">
                       <a href={project.demo} target="_blank" rel="noreferrer" className="flex-1 sm:flex-none">
                         <Button size="sm" variant="neutral" className="border-2 border-black bg-white font-black uppercase text-[10px] w-full">
-                          <Play className="size-3 text-main mr-1" /> Demo
+                          <Play className="size-3 text-main mr-1" /> Visit
                         </Button>
                       </a>
                       <a href={project.github} target="_blank" rel="noreferrer" className="flex-1 sm:flex-none">
-                        <Button size="sm" className="border-2 border-black font-black uppercase text-[10px] w-full">Code</Button>
+                        <Button size="sm" className="border-2 border-black font-black uppercase text-[10px] w-full">Github Repo</Button>
                       </a>
                       <Button size="sm" variant="ghost" className="border-2 border-black font-black uppercase text-[10px] flex-1 sm:flex-none" onClick={() => setExpandedProject(project.id)}>
                         Inspect Specs
@@ -1314,19 +1314,44 @@ AUDIT: ARMORED. Perimeter firewalls hardened, full payload inspection active.`;
               </Card>
             </div>
 
-            {/* Dossier Right: Key Pillars */}
+            {/* Dossier Right: Key Pillars / Education */}
             <div className="lg:col-span-4 flex flex-col gap-6">
               <Card className="border-2 border-black bg-secondary-background p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex-1 flex flex-col justify-between">
                 <div>
-                  <h4 className="text-lg font-black uppercase tracking-tight text-main border-b-2 border-black pb-2 mb-3">Academic Foundation</h4>
-                  <p className="text-sm font-bold leading-relaxed text-muted-foreground">
-                    Deep conceptual foundations in analytical programming, cloud automation infrastructure, and interactive frontend paradigms via active training and self-directed scholarly pipelines.
-                  </p>
+                  <h4 className="text-lg font-black uppercase tracking-tight text-main border-b-2 border-black pb-2 mb-3">Education</h4>
+                  <ul className="space-y-4">
+                    <li>
+                      <span className="text-[10px] font-black uppercase text-muted-foreground block">Expected Graduate on July 2026</span>
+                      <p className="text-sm font-bold leading-tight">Bachelor of Information Technology 4th Year</p>
+                      <p className="text-xs font-semibold text-muted-foreground mt-0.5">STI College Cagayan de Oro City</p>
+                    </li>
+                    <li>
+                      <span className="text-[10px] font-black uppercase text-muted-foreground block">June 2015 - 2018</span>
+                      <p className="text-sm font-bold leading-tight">1st - 3rd Year Agribusiness</p>
+                      <p className="text-xs font-semibold text-muted-foreground mt-0.5">Xavier University Ateneo de Cagayan University</p>
+                    </li>
+                  </ul>
                 </div>
-                <div className="pt-4">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">VERIFICATION LEVEL</span>
-                  <div className="h-4 bg-white border-2 border-black rounded-base overflow-hidden relative mt-1 shadow-[2px_2px_0_0_rgba(0,0,0,1)]">
-                    <div className="h-full bg-main w-[90%] border-r border-black" />
+              </Card>
+
+              <Card className="border-2 border-black bg-secondary-background p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex-1 flex flex-col justify-between">
+                <div>
+                  <h4 className="text-lg font-black uppercase tracking-tight text-main border-b-2 border-black pb-2 mb-3">Affiliations & Certs</h4>
+                  <div className="space-y-3">
+                    <div>
+                      <h5 className="text-[10px] font-black uppercase text-muted-foreground mb-1">Affiliations</h5>
+                      <ul className="text-xs font-bold space-y-1 text-foreground">
+                        <li className="flex items-start gap-1.5"><span className="text-main">★</span> Philippine Airforce Reserve</li>
+                        <li className="flex items-start gap-1.5"><span className="text-main">★</span> XU ROTC Cadet Officer</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h5 className="text-[10px] font-black uppercase text-muted-foreground mb-1">Certifications</h5>
+                      <ul className="text-xs font-bold space-y-1 text-foreground">
+                        <li className="flex items-start gap-1.5"><span className="text-main">✔</span> Safety Officer SO1</li>
+                        <li className="flex items-start gap-1.5"><span className="text-main">✔</span> TESDA Automotive NC 1</li>
+                      </ul>
+                    </div>
                   </div>
                 </div>
               </Card>
