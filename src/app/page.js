@@ -49,7 +49,7 @@ export default function Home() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTrack, setCurrentTrack] = useState("Lofi Chill Beats - Dev Session");
   const [defaultTrackReady, setDefaultTrackReady] = useState(true);
-  const audioRef = useRef(null);
+  const audioElRef = useRef(null);
 
   useEffect(() => {
     let mounted = true;
@@ -59,25 +59,28 @@ export default function Home() {
         const response = await fetch("/audio/default.mp3", { method: "HEAD" });
         if (!mounted) return;
 
-        audioRef.current = new Audio();
-        audioRef.current.preload = "auto";
-        audioRef.current.playsInline = true;
-        audioRef.current.loop = true;
+        const el = audioElRef.current || document.getElementById("default-audio");
+        if (!el) return;
 
-        if (response.ok) {
-          audioRef.current.src = "/audio/default.mp3";
-          audioRef.current.currentTime = 0;
+        el.preload = "auto";
+        el.playsInline = true;
+        el.loop = true;
+        el.muted = true; // start muted to allow autoplay on many browsers
+        el.src = response && response.ok ? "/audio/default.mp3" : "";
+
+        if (response && response.ok) {
           setDefaultTrackReady(true);
           setCurrentTrack("Default Track");
-
           try {
-            audioRef.current.muted = true;
-            await audioRef.current.play();
+            await el.play();
             if (!mounted) return;
             setIsPlaying(true);
-            window.setTimeout(() => {
-              if (audioRef.current) audioRef.current.muted = false;
-            }, 250);
+            // Once playing, attempt to unmute after a short delay
+            const onPlaying = () => {
+              window.setTimeout(() => { try { el.muted = false; } catch {} }, 250);
+              el.removeEventListener("playing", onPlaying);
+            };
+            el.addEventListener("playing", onPlaying);
           } catch (playError) {
             console.warn("Autoplay was blocked:", playError);
             setIsPlaying(false);
@@ -86,12 +89,8 @@ export default function Home() {
           setDefaultTrackReady(false);
           setCurrentTrack("No default track loaded");
         }
-      } catch {
-        if (!mounted) return;
-        audioRef.current = new Audio();
-        audioRef.current.preload = "auto";
-        audioRef.current.playsInline = true;
-        audioRef.current.loop = true;
+      } catch (e) {
+        console.warn("Audio setup failed", e);
         setDefaultTrackReady(false);
         setCurrentTrack("No default track loaded");
       }
@@ -101,20 +100,21 @@ export default function Home() {
 
     return () => {
       mounted = false;
-      audioRef.current?.pause?.();
-      audioRef.current = null;
+      try { (audioElRef.current || document.getElementById("default-audio"))?.pause?.(); } catch {}
+      audioElRef.current = null;
     };
   }, []);
 
   const togglePlay = async () => {
-    if (!audioRef.current) return;
-    if (!defaultTrackReady && !audioRef.current.src) return;
+    const el = audioElRef.current || document.getElementById("default-audio");
+    if (!el) return;
+    if (!defaultTrackReady && !el.src) return;
     try {
       if (isPlaying) {
-        audioRef.current.pause();
+        el.pause();
         setIsPlaying(false);
       } else {
-        await audioRef.current.play();
+        await el.play();
         setIsPlaying(true);
       }
     } catch (err) {
@@ -754,6 +754,8 @@ AUDIT: ARMORED. Perimeter firewalls hardened, full payload inspection active.`;
             )}
             <span className="truncate max-w-30">{isPlaying ? currentTrack : "Track Paused"}</span>
           </div>
+          {/* DOM audio element used for reliable autoplay (muted) */}
+          <audio id="default-audio" ref={audioElRef} style={{ display: "none" }} autoPlay muted loop playsInline />
         </div>
 
         <nav className="hidden lg:flex items-center gap-6 font-bold text-sm">
