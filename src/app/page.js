@@ -67,14 +67,48 @@ export default function Home() {
         el.preload = "auto";
         el.playsInline = true;
         el.loop = true;
-        el.muted = isMuted; // respect default mute state
         el.src = response && response.ok ? "/audio/default.mp3" : "";
 
         if (response && response.ok) {
           setDefaultTrackReady(true);
           setCurrentTrack("Default Track");
-          // Do not autoplay: load ready for user-initiated play
-          try { el.load(); } catch (e) { /* ignore */ }
+
+          // Aggressive autoplay strategy:
+          // 1) Try muted autoplay then unmute (works on many browsers)
+          // 2) If that fails, try unmuted autoplay directly
+          // 3) If both fail, show overlay/CTA for explicit user gesture
+          try {
+            el.muted = true;
+            setIsMuted(true);
+            await el.play();
+            if (!mounted) return;
+            setIsPlaying(true);
+            // Attempt to unmute after short delay
+            window.setTimeout(async () => {
+              try {
+                el.muted = false;
+                setIsMuted(false);
+              } catch (e) { /* ignore */ }
+            }, 300);
+            setAutoplayBlocked(false);
+            return;
+          } catch (mutedErr) {
+            console.warn("Muted autoplay blocked:", mutedErr);
+          }
+
+          // Try unmuted autoplay directly
+          try {
+            el.muted = false;
+            setIsMuted(false);
+            await el.play();
+            if (!mounted) return;
+            setIsPlaying(true);
+            setAutoplayBlocked(false);
+            return;
+          } catch (unmutedErr) {
+            console.warn("Unmuted autoplay blocked:", unmutedErr);
+            setAutoplayBlocked(true);
+          }
         } else {
           setDefaultTrackReady(false);
           setCurrentTrack("No default track loaded");
@@ -83,6 +117,7 @@ export default function Home() {
         console.warn("Audio setup failed", e);
         setDefaultTrackReady(false);
         setCurrentTrack("No default track loaded");
+        setAutoplayBlocked(true);
       }
     };
 
@@ -754,6 +789,31 @@ AUDIT: ARMORED. Perimeter firewalls hardened, full payload inspection active.`;
 
   return (
     <div className={`min-h-screen font-sans bg-background text-foreground transition-colors duration-300`}>
+      {/* Full-screen overlay to request a user gesture when autoplay is blocked */}
+      {autoplayBlocked && !isPlaying && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 text-white">
+          <div className="text-center p-6 max-w-sm">
+            <h2 className="text-2xl font-bold mb-3">Enable Site Audio</h2>
+            <p className="mb-4">To enjoy background music automatically, please enable sound. This site will play a default track when allowed.</p>
+            <div className="flex justify-center gap-3">
+              <button className="px-4 py-2 bg-main text-main-foreground rounded font-bold border-2 border-black" onClick={async () => {
+                const el = audioElRef.current || document.getElementById("default-audio");
+                if (!el) return;
+                try {
+                  el.muted = false;
+                  await el.play();
+                  setIsPlaying(true);
+                  setAutoplayBlocked(false);
+                  setIsMuted(false);
+                } catch (err) {
+                  console.warn('Manual enable failed', err);
+                }
+              }}>Enable Sound</button>
+              <button className="px-4 py-2 bg-transparent border-2 border-white rounded" onClick={() => { setAutoplayBlocked(false); }}>Continue Muted</button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Neo-brutalist Bold Top Header Bar */}
       <header className="sticky top-0 z-50 bg-background border-b-4 border-black dark:border-white py-4 px-6 flex justify-between items-center shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)]">
         <div className="flex items-center gap-3">
